@@ -20,13 +20,26 @@ const USER_AGENT =
   'Mozilla/5.0 (compatible; OutpostSEOAuditBot/1.0; +https://theoutpost.agency)';
 
 /* ------------------------------------------------------------------ */
-/*  CORS                                                               */
+/*  CORS — strict allowlist. Only these origins may call this API.     */
 /* ------------------------------------------------------------------ */
-function setCors(res) {
-  // TODO: lock this down to 'https://theoutpost.agency' before going live.
-  res.setHeader('Access-Control-Allow-Origin', '*');
+const ALLOWED_ORIGINS = [
+  'https://theoutpost.agency',
+  'https://theoutpost.vibepreview.com',
+];
+
+// Returns true if the request's Origin is allowed (and sets the CORS
+// headers for it). Returns false if the Origin is missing or not on
+// the allowlist — caller must reject the request in that case.
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    return false;
+  }
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
+  return true;
 }
 
 /* ------------------------------------------------------------------ */
@@ -291,7 +304,10 @@ async function captureLead({ email, url, keyword }) {
 /*  HTTP handler                                                       */
 /* ------------------------------------------------------------------ */
 async function handler(req, res) {
-  setCors(res);
+  const corsOk = setCors(req, res);
+  if (!corsOk) {
+    return res.status(403).json({ success: false, error: 'Forbidden: origin not allowed.' });
+  }
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
