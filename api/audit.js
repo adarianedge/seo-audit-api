@@ -37,7 +37,7 @@ function setCors(req, res) {
   }
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Audit-Token, X-Request-Origin');
   res.setHeader('Vary', 'Origin');
   return true;
 }
