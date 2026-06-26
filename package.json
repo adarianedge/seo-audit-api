@@ -1,0 +1,13 @@
+{
+  "name": "seo-audit-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless backend for the free SEO audit tool (Vercel function).",
+  "main": "api/audit.js",
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
