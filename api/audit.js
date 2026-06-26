@@ -43,6 +43,19 @@ function setCors(req, res) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Agency allowlist - emails that bypass the client rate limit.       */
+/* Configure via Vercel env var AGENCY_ALLOWLIST_EMAILS (comma-sep).  */
+/* The list itself never leaves the server; only a true/false result */
+/* for the submitted email is returned to the client.                 */
+/* ------------------------------------------------------------------ */
+function isAllowlistedEmail(email) {
+  const raw = process.env.AGENCY_ALLOWLIST_EMAILS || '';
+  if (!raw || !email) return false;
+    const list = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  return list.includes(String(email).trim().toLowerCase());
+}
+
+/* ------------------------------------------------------------------ */
 /*  Text helpers                                                       */
 /* ------------------------------------------------------------------ */
 function escapeRegExp(str) {
@@ -376,6 +389,7 @@ async function handler(req, res) {
   let report;
   try {
     report = analyzeHtml(html, { url: parsed.toString(), keyword });
+    report.meta = { trusted: isAllowlistedEmail(email) };
   } catch (err) {
     return res.status(500).json({ success: false, error: 'Failed to analyze the page content.' });
   }
